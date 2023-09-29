@@ -197,6 +197,29 @@ btnTransfer.addEventListener("click", function (e) {
   }
 });
 
+btnLoan.addEventListener("click", function (e) {
+  e.preventDefault();
+
+  const amount = Number(inputLoanAmount.value);
+
+  /*
+   * our mini bank has a rule that, it will only grant the
+   * loan if the user had any previous transaction that
+   * atleast 10% of the requested loan 😂!
+   */
+  if (amount > 0 && currentAccount.movements.some(mov => mov >= amount * 0.1)) {
+    // console.log("LOAN APPROAVED");
+    // add movement
+    currentAccount.movements.push(amount);
+
+    // update UI
+    updateUI(currentAccount);
+  }
+
+  inputLoanAmount.value = "";
+  inputLoanAmount.blur();
+});
+
 btnClose.addEventListener("click", function (e) {
   e.preventDefault();
 
