@@ -79,9 +79,12 @@ const displayMovements = function (movements) {
 };
 // displayMovements(account1.movements);
 
-const calcDisplayBalance = function (movements) {
-  const balance = movements.reduce((acc, mov) => acc + mov, 0);
-  labelBalance.textContent = `${balance} EUR`;
+const calcDisplayBalance = function (acc) {
+  acc.balance = acc.movements.reduce(
+    (accumulator, mov) => accumulator + mov,
+    0
+  );
+  labelBalance.textContent = `${acc.balance} EUR`;
 };
 // calcDisplayBalance(account1.movements);
 
@@ -120,6 +123,17 @@ const createUsername = function (accounts) {
 };
 createUsername(accounts);
 
+const updateUI = function (acc) {
+  // display movements
+  displayMovements(acc.movements);
+
+  // display balance
+  calcDisplayBalance(acc);
+
+  // display summary
+  calcDisplaySummary(acc);
+};
+
 // Event Listener
 let currentAccount;
 
@@ -128,6 +142,7 @@ btnLogin.addEventListener("click", function (e) {
   // this button element is inside a form element so the
   // default behavior is to submit the form(which refreshes/reloads
   // the page) on clicking the button, and we do NOT want that!
+  // Pretty common thing to do when working with forms!
   e.preventDefault();
 
   currentAccount = accounts.find(
@@ -148,16 +163,37 @@ btnLogin.addEventListener("click", function (e) {
      * if that cursor is still blinking in that field, it would
      * look ugly. To remove that focus, we can use "blur()" method.
      */
+    inputLoginUsername.blur();
     inputLoginPin.blur();
 
-    // display movements
-    displayMovements(currentAccount.movements);
+    // update user interface
+    updateUI(currentAccount);
+  }
+});
 
-    // display balance
-    calcDisplayBalance(currentAccount.movements);
+btnTransfer.addEventListener("click", function (e) {
+  e.preventDefault();
 
-    // display summary
-    calcDisplaySummary(currentAccount);
+  const amount = Number(inputTransferAmount.value);
+  const receiverAccount = accounts.find(
+    acc => acc.username === inputTransferTo.value
+  );
+
+  inputTransferAmount.value = inputTransferTo.value = "";
+  inputTransferAmount.blur();
+  inputTransferTo.blur();
+
+  if (
+    amount > 0 &&
+    receiverAccount &&
+    currentAccount.balance >= amount &&
+    receiverAccount?.owner !== currentAccount.owner
+  ) {
+    currentAccount.movements.push(-amount);
+    receiverAccount.movements.push(amount);
+
+    // update user interface
+    updateUI(currentAccount);
   }
 });
 
