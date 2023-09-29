@@ -77,7 +77,38 @@ const displayMovements = function (movements) {
     containerMovements.insertAdjacentHTML("afterbegin", html);
   });
 };
-displayMovements(account1.movements);
+// displayMovements(account1.movements);
+
+const calcDisplayBalance = function (movements) {
+  const balance = movements.reduce((acc, mov) => acc + mov, 0);
+  labelBalance.textContent = `${balance} EUR`;
+};
+// calcDisplayBalance(account1.movements);
+
+const calcDisplaySummary = function (acc) {
+  const [incomes, outcomes] = acc.movements.reduce(
+    (accumulator, mov) => {
+      accumulator[mov > 0 ? 0 : 1] += mov;
+      return accumulator;
+    },
+    [0, 0]
+  );
+  labelSumIn.textContent = `${incomes}€`;
+  labelSumOut.textContent = `${Math.abs(outcomes)}€`;
+
+  // let's say our bank account pays interest on deposit and that interest
+  // will be added to the acocunt if it is atleast 1 buck
+  const interest = acc.movements
+    .filter(mov => mov > 0)
+    .map(deposit => (deposit * acc.interestRate) / 100)
+    .filter(interestPerDeposit => interestPerDeposit >= 1)
+    .reduce(
+      (accumulator, interestPerDeposit) => accumulator + interestPerDeposit,
+      0
+    );
+  labelSumInterest.textContent = `${interest}€`;
+};
+// calcDisplaySummary(account1.movements);
 
 const createUsername = function (accounts) {
   accounts.forEach(acc => {
@@ -88,6 +119,47 @@ const createUsername = function (accounts) {
   });
 };
 createUsername(accounts);
+
+// Event Listener
+let currentAccount;
+
+btnLogin.addEventListener("click", function (e) {
+  // Prevent default behaviour of the event. For example,
+  // this button element is inside a form element so the
+  // default behavior is to submit the form(which refreshes/reloads
+  // the page) on clicking the button, and we do NOT want that!
+  e.preventDefault();
+
+  currentAccount = accounts.find(
+    acc => acc.username === inputLoginUsername.value
+  );
+  if (currentAccount?.pin === Number(inputLoginPin.value)) {
+    // display UI and welcome message
+    labelWelcome.textContent = `Welcome back, ${
+      currentAccount.owner.split(" ")[0]
+    }`;
+    containerApp.style.opacity = 1;
+
+    // clear input fields
+    inputLoginUsername.value = inputLoginPin.value = "";
+    /*
+     * whenever we write something in input field, our cursor
+     * will be blinking on this field. But, after logging in
+     * if that cursor is still blinking in that field, it would
+     * look ugly. To remove that focus, we can use "blur()" method.
+     */
+    inputLoginPin.blur();
+
+    // display movements
+    displayMovements(currentAccount.movements);
+
+    // display balance
+    calcDisplayBalance(currentAccount.movements);
+
+    // display summary
+    calcDisplaySummary(currentAccount);
+  }
+});
 
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
